@@ -126,6 +126,36 @@ public:
 		else
 			return false;
 	}
+	bool disconnect(const TVertex& from, const TVertex& to, const TEdge& weight)
+	{
+		size_t from_index = contains(from);
+
+		Edge* temp = _table[from_index - 1].first;
+		if (!temp) 
+			return false;
+		if (temp->next == nullptr)
+		{
+			delete temp;
+			_table[from_index - 1].first = nullptr;
+			return true;
+		}
+		else
+		{
+			Edge* next = temp->next;
+			while (next)
+			{
+				if (next->destination == to && next->edge_entity == weight)
+				{
+					temp = next->next;
+					delete next;
+					return true;
+				}
+				temp = temp->next;
+				next = next->next;
+			}
+			return false;
+		}
+	}
 
 	template <class v, class e>
 	friend std::ostream& operator<<(std::ostream& os, const Graph<v, e>& graph);

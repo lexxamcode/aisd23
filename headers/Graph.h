@@ -30,7 +30,7 @@ private:
 	}
 	size_t capacity_resize(const short& delta_capacity)
 	{
-		if (_capacity + delta_capacity <= _size) throw "Too small capacity for current amount of elemets.";
+		if (_capacity + delta_capacity < _size) throw "Too small capacity for current amount of elemets.";
 
 		_capacity += delta_capacity;
 
@@ -43,6 +43,47 @@ private:
 		_table = temp;
 
 		return _capacity;
+	}
+	bool disconnect_any(const TVertex& from, const TVertex& to)
+	{
+		size_t from_index = contains(from);
+
+		Edge* temp = _table[from_index - 1].first;
+		if (!temp)
+			return false;
+		if (temp->next == nullptr && temp->destination == to)
+		{
+			delete _table[from_index - 1].first;
+			_table[from_index - 1].first = nullptr;
+			return true;
+		}
+		else
+		{
+			Edge* next = temp->next;
+			while (next)
+			{
+				if (next->destination == to)
+				{
+					temp->next = next->next;
+					delete next;
+					return true;
+				}
+				temp = temp->next;
+				next = next->next;
+			}
+			return false;
+		}
+	}
+	bool list_has(Edge* first, const TVertex& to)
+	{
+		Edge* temp = first;
+		while (temp)
+		{
+			if (temp->destination == to)
+				return true;
+			temp = temp->next;
+		}
+		return false;
 	}
 
 public:
@@ -84,19 +125,30 @@ public:
 	bool delete_vertex(const TVertex& vertex)
 	{
 		size_t index = contains(vertex);
+		for (size_t i = 0; i < _size; i++)
+		{
+			while (list_has(_table[i].first, 2))
+			{
+				disconnect_any(_table[i].element, vertex);
+			}
+		}
+
 		if (index)
 		{
 			for (size_t i = index - 1; i < _size - 1; i++)
-			{
 				_table[i] = _table[i + 1];
-			}
 
 			_size--;
-			if (_capacity - _size >= 8)
-				capacity_resize(-8);
+			if (_capacity == 0 && _size == 0)
+			{
+				delete[] _table;
+				_table = nullptr;
+			}
+
 			return true;
 		}
-		return false;
+		else
+			return false;
 	}
 	bool connect(const TVertex& from, const TVertex& to, const TEdge& weight)
 	{

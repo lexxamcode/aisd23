@@ -41,6 +41,8 @@ private:
 
 		delete[] _table;
 		_table = temp;
+
+		return _capacity;
 	}
 
 public:

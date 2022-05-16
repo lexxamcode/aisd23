@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 
 template <class TVertex, class TEdge>
 class Graph
@@ -13,6 +14,8 @@ private:
 	struct Vertex
 	{
 		TVertex element;
+		short color = 0;
+		TEdge range = 0;
 		Edge* first;
 	};
 
@@ -31,18 +34,20 @@ private:
 	size_t capacity_resize(const short& delta_capacity)
 	{
 		if (_capacity + delta_capacity < _size) throw "Too small capacity for current amount of elemets.";
+		else
+		{
+			_capacity += delta_capacity;
 
-		_capacity += delta_capacity;
+			Vertex* temp = new Vertex[_capacity];
 
-		Vertex* temp = new Vertex[_capacity];
+			for (size_t i = 0; i < _size; i++)
+				temp[i] = _table[i];
 
-		for (size_t i = 0; i < _size; i++)
-			temp[i] = _table[i];
+			delete[] _table;
+			_table = temp;
 
-		delete[] _table;
-		_table = temp;
-
-		return _capacity;
+			return _capacity;
+		}
 	}
 	bool disconnect_any(const TVertex& from, const TVertex& to)
 	{
@@ -85,7 +90,15 @@ private:
 		}
 		return false;
 	}
-
+	void reinit()
+	{
+		if(_table)
+			for (size_t i = 0; i < _size; i++)
+			{
+				_table[i].color = 0;
+				_table[i].range = 0;
+			}
+	}
 public:
 	Graph() : _table(nullptr), _size(0), _capacity(0) {}
 	Graph(const Graph& copygraph)
@@ -109,7 +122,7 @@ public:
 		{
 			if (!contains(vertex))
 			{
-				Vertex adding = { vertex, nullptr };
+				Vertex adding = { vertex, 0, 0, nullptr };
 				_table[_size] = adding;
 				_size++;
 			}
@@ -117,7 +130,7 @@ public:
 		else
 		{
 			capacity_resize(8);
-			Vertex adding = { vertex, nullptr };
+			Vertex adding = { vertex, 0, 0, nullptr };
 			_table[_size] = adding;
 			_size++;
 		}
@@ -125,9 +138,10 @@ public:
 	bool delete_vertex(const TVertex& vertex)
 	{
 		size_t index = contains(vertex);
+		//Disconnecting this vertex from all others
 		for (size_t i = 0; i < _size; i++)
 		{
-			while (list_has(_table[i].first, 2))
+			while (list_has(_table[i].first, vertex))
 			{
 				disconnect_any(_table[i].element, vertex);
 			}
@@ -135,6 +149,14 @@ public:
 
 		if (index)
 		{
+			//Deleting all edges of the deleting vertex
+			while (_table[index - 1].first)
+			{
+				Edge* temp = _table[index - 1].first;
+				_table[index - 1].first = _table[index - 1].first->next;
+				delete temp;
+			}
+			//Deleting the vertex from vertex' table
 			for (size_t i = index - 1; i < _size - 1; i++)
 				_table[i] = _table[i + 1];
 
@@ -207,29 +229,48 @@ public:
 				temp = temp->next;
 				next = next->next;
 			}
-			return false;
 		}
+		return false;
 	}
 
-	template <class v, class e>
-	friend std::ostream& operator<<(std::ostream& os, const Graph<v, e>& graph);
-};
-
-template <class TVertex, class TEdge>
-std::ostream& operator<<(std::ostream& os, const Graph<TVertex, TEdge>& graph)
-{
-	for (size_t i = 0; i < graph._size; i++)
+	void bfs()//s
 	{
-		os << graph._table[i].element << "\n";
-		Graph<TVertex, TEdge>::Edge* temp = graph._table[i].first;
-
-		while (temp)
+		for (size_t i = 0; i < _size; i++)
 		{
-			os << "-" << temp->edge_entity << "-" << temp->destination << std::endl;
-			temp = temp->next;
-		}
-		os << std::endl;
-	}
+			reinit();
+			TVertex vertex = _table[i].element;
+			std::queue<TVertex> neighbours;//Q = 0
+			neighbours.push(vertex);//Q.push(s)
+			size_t vertex_index = contains(vertex) - 1;
+			_table[vertex_index].color = 1;//s.color = white
+			_table[vertex_index].range = 0;//s.range = 0
 
-	return os;
-}
+			std::cout << vertex << ":" << std::endl;
+			while (!neighbours.empty())//while Q
+			{
+				TVertex current = neighbours.front();
+				neighbours.pop();//u = Q.pop()
+				size_t current_index = contains(current);
+				if (current_index)
+				{
+					Edge* temp = _table[contains(current) - 1].first;// for each v in u-neighbours
+					while (temp)
+					{
+						if (_table[contains(temp->destination) - 1].color == 0)
+						{
+							_table[contains(temp->destination) - 1].color = 1;
+							_table[contains(temp->destination) - 1].range = _table[contains(current) - 1].range + temp->edge_entity;// d(v) = d(u)+weight
+							TVertex parent = current;
+							std::cout << parent << " -> " << _table[contains(temp->destination) - 1].element << " = " << _table[contains(temp->destination) - 1].range << std::endl;
+							neighbours.push(temp->destination); //Q.push(v)
+						}
+						temp = temp->next;
+					}
+					_table[contains(current) - 1].color = 2;//u.color = black
+				}
+			}
+		}
+	}
+};
+// << _table[contains(current) - 1].element << " -> " 
+// << current << " -> "

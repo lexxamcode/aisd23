@@ -1,276 +1,191 @@
 #include <iostream>
 #include <queue>
+#include <vector>
+#include <list>
+#include <algorithm>
+#include <unordered_map>
 
 template <class TVertex, class TEdge>
 class Graph
 {
 private:
+	//
 	struct Edge
 	{
-		TVertex destination;
-		TEdge edge_entity;
-		Edge* next;
+		// Структура ребра: пункт назначения, свойство ребра
+		TVertex _destination;
+		TEdge _edge_property;
 	};
 	struct Vertex
 	{
-		TVertex element;
-		short color = 0;
-		TEdge range = 0;
-		Edge* first;
+		// Структура вершины: характерное поле, список
+		// исходящих ребер
+		TVertex _id;
+		std::list<Edge> _edges;
 	};
 
-	Vertex* _table;
-	size_t _size;
-	size_t _capacity;
-	//
-	size_t contains(const TVertex& vertex) const //returns and index of the element plus 1
+	struct AdditionalVertexInfo
 	{
-		if (_table)
-			for (size_t i = 0; i < _size; i++)
-				if (_table[i].element == vertex)
-					return i + 1;
-		return 0;
-	}
-	size_t capacity_resize(const short& delta_capacity)
+		// Структура для хранения данных, необходимых для
+		// алгоритмов обхода: цвет, путь, предок
+		short color = 0;
+		TEdge track;
+		TVertex parent;
+	};
+
+	std::vector<Vertex> _vtable;
+	std::unordered_map<TVertex, AdditionalVertexInfo> additional_info;
+	// 
+	int contains(const TVertex& id) const
 	{
-		if (_capacity + delta_capacity < _size) throw "Too small capacity for current amount of elemets.";
-		else
-		{
-			_capacity += delta_capacity;
-
-			Vertex* temp = new Vertex[_capacity];
-
-			for (size_t i = 0; i < _size; i++)
-				temp[i] = _table[i];
-
-			delete[] _table;
-			_table = temp;
-
-			return _capacity;
-		}
-	}
-	bool disconnect_any(const TVertex& from, const TVertex& to)
-	{
-		size_t from_index = contains(from);
-
-		Edge* temp = _table[from_index - 1].first;
-		if (!temp)
-			return false;
-		if (temp->next == nullptr && temp->destination == to)
-		{
-			delete _table[from_index - 1].first;
-			_table[from_index - 1].first = nullptr;
-			return true;
-		}
-		else
-		{
-			Edge* next = temp->next;
-			while (next)
-			{
-				if (next->destination == to)
-				{
-					temp->next = next->next;
-					delete next;
-					return true;
-				}
-				temp = temp->next;
-				next = next->next;
-			}
-			return false;
-		}
-	}
-	bool list_has(Edge* first, const TVertex& to)
-	{
-		Edge* temp = first;
-		while (temp)
-		{
-			if (temp->destination == to)
-				return true;
-			temp = temp->next;
-		}
-		return false;
+		for (int i = 0; i < _vtable.size(); i++)
+			if (_vtable[i]._id == id)
+				return i;
+		return -1;
 	}
 	void reinit()
 	{
-		if(_table)
-			for (size_t i = 0; i < _size; i++)
-			{
-				_table[i].color = 0;
-				_table[i].range = 0;
-			}
+		for (auto it = additional_info.begin(); it != additional_info.end(); it++)
+			it->second.color = 0;
 	}
 public:
-	Graph() : _table(nullptr), _size(0), _capacity(0) {}
-	Graph(const Graph& copygraph)
+	void add(const TVertex& id)
 	{
-		this->_size = copygraph._size;
-		this->_capacity = copygraph._capacity;
-		_table = new Vertex[_capacity];
-		
-		for (int i = 0; i < _size; i++)
-			_table[i] = copygraph._table[i];
-	}
-	~Graph()
-	{
-		if (_table)
-			delete[] _table;
+		// Добавляет вершину в граф
+
+		if (contains(id) > -1)
+			return;
+		Vertex adding = {id};
+		_vtable.push_back(adding);
+
+		AdditionalVertexInfo adding_info = { 0 };
+		additional_info.insert({ id, adding_info });
 	}
 
-	void add_vertex(const TVertex& vertex)
+	bool has(const TVertex& id) const
 	{
-		if (_size < _capacity - 1 && _table)
-		{
-			if (!contains(vertex))
-			{
-				Vertex adding = { vertex, 0, 0, nullptr };
-				_table[_size] = adding;
-				_size++;
-			}
-		}
-		else
-		{
-			capacity_resize(8);
-			Vertex adding = { vertex, 0, 0, nullptr };
-			_table[_size] = adding;
-			_size++;
-		}
-	}
-	bool delete_vertex(const TVertex& vertex)
-	{
-		size_t index = contains(vertex);
-		//Disconnecting this vertex from all others
-		for (size_t i = 0; i < _size; i++)
-		{
-			while (list_has(_table[i].first, vertex))
-			{
-				disconnect_any(_table[i].element, vertex);
-			}
-		}
+		// Проверяет, есть ли такая вершина в графе
 
-		if (index)
-		{
-			//Deleting all edges of the deleting vertex
-			while (_table[index - 1].first)
-			{
-				Edge* temp = _table[index - 1].first;
-				_table[index - 1].first = _table[index - 1].first->next;
-				delete temp;
-			}
-			//Deleting the vertex from vertex' table
-			for (size_t i = index - 1; i < _size - 1; i++)
-				_table[i] = _table[i + 1];
-
-			_size--;
-			if (_capacity == 0 && _size == 0)
-			{
-				delete[] _table;
-				_table = nullptr;
-			}
-
-			return true;
-		}
-		else
+		if (contains(id) == -1)
 			return false;
+		return true;
 	}
-	bool connect(const TVertex& from, const TVertex& to, const TEdge& weight)
+
+	void connect(const TVertex& from, const TVertex& to, const TEdge& edge_property)
 	{
-		size_t from_index = contains(from);
-		size_t to_index = contains(to);
-		if (from_index && to_index)
+		// Создает ребро, связывающее from с to
+
+		int from_index = contains(from);
+		if (from_index == -1)
+			return;
+
+		Edge adding_edge = { to, edge_property };
+		_vtable[from_index]._edges.push_back(adding_edge);
+	}
+
+	void disconnect(const TVertex& from, const TVertex& to, const TEdge& edge_property)
+	{
+		// Удаляет конкретную связь from с to
+
+		int from_index = contains(from);
+		if (from_index == -1)
+			return;
+
+		for (auto it = _vtable[from_index]._edges.begin(); it != _vtable[from_index]._edges.end();)
 		{
-			Edge* temp = _table[from_index - 1].first;
-			if (!temp)
+			Edge current_edge = *it;
+			if (current_edge._destination == to && current_edge._edge_property == edge_property)
 			{
-				//Initialize first edge of the vertex
-				_table[from_index - 1].first = new Edge;
-				_table[from_index - 1].first->destination = to;
-				_table[from_index - 1].first->edge_entity = weight;
-				_table[from_index - 1].first->next = nullptr;
+				it = _vtable[from_index]._edges.erase(it);
+				break;
 			}
 			else
-			{
-				//Append new edge of the vertex
-				while (temp->next)
-					temp = temp->next;
-				temp->next = new Edge;
-				temp->next->destination = to;
-				temp->next->edge_entity = weight;
-				temp->next->next = nullptr;
-			}
-			return true;
+				++it;
 		}
-		else
-			return false;
 	}
-	bool disconnect(const TVertex& from, const TVertex& to, const TEdge& weight)
+	
+	void destroy_all_edges(const TVertex& from, const TVertex& to)
 	{
-		size_t from_index = contains(from);
+		// Удаляет все связи from с to
 
-		Edge* temp = _table[from_index - 1].first;
-		if (!temp) 
-			return false;
-		if (temp->next == nullptr)
+		int from_index = contains(from);
+		if (from_index == -1)
+			return;
+
+		for (auto it = _vtable[from_index]._edges.begin(); it != _vtable[from_index]._edges.end();)
 		{
-			delete temp;
-			_table[from_index - 1].first = nullptr;
-			return true;
-		}
-		else
-		{
-			Edge* next = temp->next;
-			while (next)
+			Edge current_edge = *it;
+			if (current_edge._destination == to)
 			{
-				if (next->destination == to && next->edge_entity == weight)
+				it = _vtable[from_index]._edges.erase(it);
+				break;
+			}
+			else
+				++it;
+		}
+	}
+
+	void erase(const TVertex& id)
+	{
+		// Удаление вершины из графа
+
+		int index = contains(id);
+		if (index == -1)
+			return;
+		auto deleting_element = _vtable.begin();
+		for (int i = 0; i < _vtable.size(); i++)
+		{
+			for (auto it = _vtable[i]._edges.begin(); it != _vtable[i]._edges.end();)
+			{
+				Edge current_edge = *it;
+				if (current_edge._destination == id)
 				{
-					temp = next->next;
-					delete next;
-					return true;
+					it = _vtable[i]._edges.erase(it);
+					break;
 				}
-				temp = temp->next;
-				next = next->next;
+				else
+					++it;
 			}
 		}
-		return false;
+		_vtable.erase(_vtable.begin() + index);
+		additional_info.erase(id);
 	}
 
-	void bfs()//s
+	void bfs()
 	{
-		for (size_t i = 0; i < _size; i++)
+		// Обход в ширину
+
+		for (int i = 0; i < _vtable.size(); i++)//for s in vertixies
 		{
 			reinit();
-			TVertex vertex = _table[i].element;
-			std::queue<TVertex> neighbours;//Q = 0
-			neighbours.push(vertex);//Q.push(s)
-			size_t vertex_index = contains(vertex) - 1;
-			_table[vertex_index].color = 1;//s.color = white
-			_table[vertex_index].range = 0;//s.range = 0
+			std::queue<TVertex> neighbours; //Q
+			neighbours.push(_vtable[i]._id); //Q.add(s)
+			additional_info.at(_vtable[i]._id).color = 0; // s' color = gray
+			additional_info.at(_vtable[i]._id).track = static_cast<TEdge>(0); //d_s = 0
+				
+			std::cout << "[  " << _vtable[i]._id << "  ]:" << std::endl;
 
-			std::cout << vertex << ":" << std::endl;
-			while (!neighbours.empty())//while Q
+			while (!neighbours.empty())
 			{
 				TVertex current = neighbours.front();
-				neighbours.pop();//u = Q.pop()
-				size_t current_index = contains(current);
-				if (current_index)
+				neighbours.pop(); // current = Q.pop()
+
+				int current_index = contains(current);
+
+				for (auto it = _vtable[current_index]._edges.begin(); it != _vtable[current_index]._edges.end(); it++) // for v in neighbours of current
 				{
-					Edge* temp = _table[contains(current) - 1].first;// for each v in u-neighbours
-					while (temp)
+					if (additional_info[it->_destination].color == 0)// if v.color == white
 					{
-						if (_table[contains(temp->destination) - 1].color == 0)
-						{
-							_table[contains(temp->destination) - 1].color = 1;
-							_table[contains(temp->destination) - 1].range = _table[contains(current) - 1].range + temp->edge_entity;// d(v) = d(u)+weight
-							TVertex parent = current;
-							std::cout << parent << " -> " << _table[contains(temp->destination) - 1].element << " = " << _table[contains(temp->destination) - 1].range << std::endl;
-							neighbours.push(temp->destination); //Q.push(v)
-						}
-						temp = temp->next;
+						additional_info[it->_destination].color = 1;// v.color = gray
+						additional_info[it->_destination].track += it->_edge_property; // v.track += 1(!) 1 is an edge's weight
+						additional_info[it->_destination].parent = current; //v.parent = current
+						neighbours.push(it->_destination); // Q.push(current)
+
+						std::cout << " " << current << "->" << it->_destination << std::endl;
 					}
-					_table[contains(current) - 1].color = 2;//u.color = black
 				}
+				additional_info.at(current).color = 2; // current.color = black
 			}
 		}
 	}
 };
-// << _table[contains(current) - 1].element << " -> " 
-// << current << " -> "

@@ -1,5 +1,5 @@
 #include "../headers/Graph.h"
-
+#include <iostream>
 
 int main()
 {
@@ -8,7 +8,7 @@ int main()
 	Graph<int, int> x;
 	for (int i = 0; i < 11; i++)
 		x.add(i + 1);
-	
+
 	x.connect(1, 2, 1);
 	x.connect(1, 3, 2);
 	x.connect(1, 4, 3);

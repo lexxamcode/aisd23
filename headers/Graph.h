@@ -46,7 +46,10 @@ private:
 	void reinit()
 	{
 		for (auto it = additional_info.begin(); it != additional_info.end(); it++)
+		{
 			it->second.color = 0;
+			it->second.track = static_cast<TEdge>(0);
+		}
 	}
 public:
 	void add(const TVertex& id)
@@ -177,11 +180,11 @@ public:
 					if (additional_info[it->_destination].color == 0)// if v.color == white
 					{
 						additional_info[it->_destination].color = 1;// v.color = gray
-						additional_info[it->_destination].track += it->_edge_property; // v.track += 1(!) 1 is an edge's weight
+						additional_info[it->_destination].track += additional_info[current].track + it->_edge_property; // v.track += 1(!) 1 is an edge's weight
 						additional_info[it->_destination].parent = current; //v.parent = current
 						neighbours.push(it->_destination); // Q.push(current)
 
-						std::cout << " " << current << "->" << it->_destination << std::endl;
+						std::cout << " " << additional_info[it->_destination].parent << "->" << it->_destination << " = " << additional_info[it->_destination].track << std::endl;
 					}
 				}
 				additional_info.at(current).color = 2; // current.color = black

@@ -4,6 +4,7 @@
 #include <list>
 #include <algorithm>
 #include <unordered_map>
+#include <set>
 
 template <class TVertex, class TEdge>
 class Graph
@@ -31,6 +32,20 @@ private:
 		short color = 0;
 		TEdge track;
 		TVertex parent;
+	};
+
+	struct DijkstraQueueStruct
+	{
+		TVertex _id;
+		TEdge _edge_property;
+
+	};
+	struct DQSCompare {
+		bool operator()(const DijkstraQueueStruct& a, const DijkstraQueueStruct& b)
+		{
+			return a._edge_property > b._edge_property;
+			
+		}
 	};
 
 	std::vector<Vertex> _vtable;
@@ -241,44 +256,42 @@ public:
 	std::list<TVertex> dijkstra(const TVertex& from, const TVertex& to)
 	{
 		std::list<TVertex> path;
-
 		int index = contains(from);
-		if (index == -1) return path;
+		if (index == -1) throw - 1;
 
-		dijkstra_reinit();
+		dijkstra_reinit(); //Initialization
+		std::list<TVertex> used; // S = 0
+		std::priority_queue<DijkstraQueueStruct, std::vector<DijkstraQueueStruct>, DQSCompare> vertex_q;// Q = V
 
-		// Предок начала алгоритма - начало алгоритма, величина пути от начала алгоритма до начала алгоритма = 0 
-		additional_info.at(_vtable[index]._id).parent = _vtable[index]._id;
-		additional_info.at(_vtable[index]._id).track = static_cast<TEdge>(0);
+		// Путь до начальной вершины = 0
+		// Загружаем все пары {вершина, путь до нее} в очередь с приоритетом vertex_q
+		additional_info[from].track = static_cast<TEdge>(0);
 
-		for (auto it = _vtable[index]._edges.begin(); it != _vtable[index]._edges.end(); it++)// Пройдем по всем смежным вершинам и обновим их "стоимости с "бесконечности" на вес соединяющих их ребер 
+		DijkstraQueueStruct start = { from, additional_info[from].track };
+		vertex_q.push(start);
+
+		while (!vertex_q.empty())
 		{
-			additional_info[it->_destination].track = it->_edge_property;
-			additional_info[it->_destination].parent = _vtable[index]._id; // В additional info
-		}
+			TVertex current =  vertex_q.top()._id;
+			vertex_q.pop();
+			used.push_back(current);
+			std::list<Edge> neighbours = _vtable[contains(current)]._edges;
 
-		TVertex nearest = nearest_neighbour(from); // ID ближайшей к from вершины
-
-		while (nearest != std::numeric_limits<TVertex>::max()) // Пока есть ближайшая к from НЕОБРАБОТАННАЯ вершина (color = 0)
-		{
-			TEdge cost = additional_info[nearest].track; // Длина ребра from-nearest
-			std::list<Edge> neighbours = _vtable[contains(nearest)]._edges; // Соседи ближайшего к from соседа
-
-			for (auto it = neighbours.begin(); it != neighbours.end(); it++) // Перебрать всех соседей этого ближайшего узла
+			for (auto it = neighbours.begin(); it != neighbours.end(); it++)
 			{
-				TEdge new_cost = cost + it->_edge_property; // Путь к соседу через текущий узел
+				
+				TEdge current_cost = additional_info[current].track; // Путь к соседу через текущий узел
+				TEdge new_cost = current_cost + it->_edge_property;
 				if (additional_info[it->_destination].track > new_cost) // Если к соседу можно добраться быстрее через текущий узел
 				{
 					additional_info[it->_destination].track = new_cost; // Обновляем стоимость пути к этому соседу
-					additional_info[it->_destination].parent = nearest; // nearest становится родителем этого соседа
-					std::cout << it->_destination << "'s parent is " << additional_info[it->_destination].parent << std::endl;
+					additional_info[it->_destination].parent = current; // nearest становится родителем этого соседа
+
+					DijkstraQueueStruct temp = { it->_destination, new_cost};
+					vertex_q.push(temp);
 				}
 			}
-			additional_info[nearest].color = 1; // Processed
-			nearest = nearest_neighbour(nearest); //Найти следующий узел для обработки и повторить цикл
 		}
-		for (auto it = additional_info.begin(); it != additional_info.end(); it++)
-			std::cout << it->first << " : " << it->second.color << " " << it->second.track << " " << it->second.parent << std::endl;
 
 		TVertex temp = to;
 		while (true)
@@ -290,5 +303,59 @@ public:
 		}
 		return path;
 	}
-	//Hochu nemnogo umeret'
 };
+
+	//std::list<TVertex> dijkstra(const TVertex& from, const TVertex& to)
+	//{
+	//	std::list<TVertex> path;
+
+	//	int index = contains(from);
+	//	if (index == -1) return path;
+
+	//	dijkstra_reinit();
+
+	//	// Предок начала алгоритма - начало алгоритма, величина пути от начала алгоритма до начала алгоритма = 0 
+	//	additional_info.at(_vtable[index]._id).parent = _vtable[index]._id;
+	//	additional_info.at(_vtable[index]._id).track = static_cast<TEdge>(0);
+
+	//	for (auto it = _vtable[index]._edges.begin(); it != _vtable[index]._edges.end(); it++)// Пройдем по всем смежным вершинам и обновим их "стоимости с "бесконечности" на вес соединяющих их ребер 
+	//	{
+	//		additional_info[it->_destination].track = it->_edge_property;
+	//		additional_info[it->_destination].parent = _vtable[index]._id; // В additional info
+	//	}
+
+	//	TVertex nearest = nearest_neighbour(from); // ID ближайшей к from вершины
+
+	//	while (nearest != std::numeric_limits<TVertex>::max()) // Пока есть ближайшая к from НЕОБРАБОТАННАЯ вершина (color = 0)
+	//	{
+	//		TEdge cost = additional_info[nearest].track; // Длина ребра from-nearest
+	//		std::list<Edge> neighbours = _vtable[contains(nearest)]._edges; // Соседи ближайшего к from соседа
+
+	//		for (auto it = neighbours.begin(); it != neighbours.end(); it++) // Перебрать всех соседей этого ближайшего узла
+	//		{
+	//			TEdge new_cost = cost + it->_edge_property; // Путь к соседу через текущий узел
+	//			if (additional_info[it->_destination].track > new_cost) // Если к соседу можно добраться быстрее через текущий узел
+	//			{
+	//				additional_info[it->_destination].track = new_cost; // Обновляем стоимость пути к этому соседу
+	//				additional_info[it->_destination].parent = nearest; // nearest становится родителем этого соседа
+	//				std::cout << it->_destination << "'s parent is " << additional_info[it->_destination].parent << std::endl;
+	//			}
+	//		}
+	//		additional_info[nearest].color = 1; // Processed
+	//		nearest = nearest_neighbour(from); //Найти следующий узел для обработки и повторить цикл
+	//	}
+	//	for (auto it = additional_info.begin(); it != additional_info.end(); it++)
+	//		std::cout << it->first << " : " << it->second.color << " " << it->second.track << " " << it->second.parent << std::endl;
+
+	//	TVertex temp = to;
+	//	while (true)
+	//	{
+	//		path.push_front(temp);
+	//		if (temp == from)
+	//			break;
+	//		temp = additional_info.at(temp).parent;
+	//	}
+	//	return path;
+	//}
+	//Hochu nemnogo umeret'
+//};

@@ -54,6 +54,9 @@ public:
 	friend bool operator ==(const Road& r1, const Road& r2);
 	friend Road operator +(const Road& r1, const Road& r2);
 	friend std::ostream& operator<<(std::ostream& out, const Road& r);
+	friend bool operator>(const Road& lhs, const Road& rhs);
+	friend bool operator<(const Road& lhs, const Road& rhs);
+	friend bool operator==(const Road& r1, const Road& r2);
 };
 
 std::ostream& operator<<(std::ostream& out, const Road& r) {
@@ -66,7 +69,7 @@ std::ostream& operator<<(std::ostream& out, const Road& r) {
 }
 
 bool operator==(const Road& r1, const Road& r2) {
-	return r1.length() == r2.length() && r1.is_federal() == r2.is_federal();
+	return r1._length == r2._length && r1._federal == r2._federal;
 }
 
 bool operator!=(const Road& lhs, const Road& rhs) {
@@ -74,11 +77,11 @@ bool operator!=(const Road& lhs, const Road& rhs) {
 }
 
 bool operator<(const Road& lhs, const Road& rhs) {
-	return lhs.length() < rhs.length();
+	return lhs._length < rhs._length;
 }
 
 bool operator>(const Road& lhs, const Road& rhs) {
-	return lhs.length() > rhs.length();
+	return lhs._length > rhs._length;
 }
 
 Road operator+(const Road& r1, const Road& r2)

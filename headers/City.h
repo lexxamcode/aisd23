@@ -39,6 +39,15 @@ public:
 		_population = population;
 	}
 	friend bool operator == (const City& city1, const City& city2);
+	City* operator=(const City& c2)
+	{
+		if (&c2 != this)
+		{
+			_name = c2._name;
+			_population = c2._population;
+		}
+		return this;
+	}
 	
 };
 

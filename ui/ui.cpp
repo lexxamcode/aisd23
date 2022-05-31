@@ -19,7 +19,7 @@ int main()
 	City kurumoch("Kurumoch", 2000000);
 	City togliatti("Togliatti", 1);
 
-	Road chap_sam(22, false);
+	Road chap_nov(22, false);
 	Road chap_hen(10, true);
 	Road nov_sam(22, false);
 	Road nov_hen(120, false);
@@ -35,7 +35,7 @@ int main()
 	x.add(kurumoch, null_city, minimum_way);
 	x.add(togliatti, null_city, minimum_way);
 
-	x.connect(chap, samara, chap_sam);
+	x.connect(chap, novik, chap_nov);
 	x.connect(chap, hengrad, chap_hen);
 
 	x.connect(novik, hengrad, nov_hen);
@@ -48,6 +48,8 @@ int main()
 
 	x.connect(kurumoch, togliatti, kur_tog);
 	x.bfs(minimum_way);
-	//std::list<City> russian_road_rage = x.dijkstra(chap, togliatti, minimum_way);
+	std::list<City> russian_road_rage = x.dijkstra(chap, togliatti, minimum_way, maximum_way);
+	for (auto it : russian_road_rage)
+		std::cout << it << " - > ";
 	return 0;
 }

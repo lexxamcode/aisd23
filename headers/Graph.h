@@ -66,12 +66,12 @@ private:
 			it->second.track = minway;
 		}
 	}
-	void dijkstra_reinit()
+	void dijkstra_reinit(const TEdge& maxway)
 	{
 		for (auto it = additional_info.begin(); it != additional_info.end(); it++)
 		{
 			it->second.color = 0;
-			it->second.track = std::numeric_limits<TEdge>::max();
+			it->second.track = maxway;
 		}
 	}
 	TVertex nearest_neighbour(const TVertex& of) const
@@ -252,13 +252,13 @@ public:
 		}
 	}
 
-	std::list<TVertex> dijkstra(const TVertex& from, const TVertex& to, const TEdge& minway)
+	std::list<TVertex> dijkstra(const TVertex& from, const TVertex& to, const TEdge& minway, const TEdge& maxway)
 	{
 		std::list<TVertex> path;
 		int index = contains(from);
 		if (index == -1) throw - 1;
 
-		dijkstra_reinit(); //Initialization
+		dijkstra_reinit(maxway); //Initialization
 		std::list<TVertex> used; // S = 0
 		std::priority_queue<DijkstraQueueStruct, std::vector<DijkstraQueueStruct>, DQSCompare> vertex_q;// Q = V
 

@@ -12,44 +12,52 @@ int main()
 	// Cities&Roads, Dijkstra - done, Print Method is to update
 
 	Graph<City, Road> x;
-	City samara("Samara", 1000000);
-	City chap("Chapayevsk", 70000);
-	City novik("Novokuibyshevsk", 2);
-	City hengrad("Hengrad", 5);
-	City kurumoch("Kurumoch", 2000000);
-	City togliatti("Togliatti", 1);
+	City samara("Samara", 1000000), togliatti("Togliatti", 700000), zhigulevsk("Zhigulevsk", 40000), syzran("Syzran", 100000);
+	City kurumoch("Kurumoch", 700), moscow("Moscow", 10000000), chapayevsk("Chapayevsk", 70000);
 
-	Road chap_nov(22, false);
-	Road chap_hen(10, true);
-	Road nov_sam(22, false);
-	Road nov_hen(120, false);
-	Road hen_sam(1, true);
-	Road hen_kur(11, true);
-	Road sam_kur(50, false);
-	Road kur_tog(20, true);
+	Road SaTo(70, true), ToZh(15, true), ToSy(100, true), ToKu(30, true), KuSa(30, false), ZhSy(80, true), SaMo(1000, true);
+	Road ToMo(900, true), SyMo(800, true), ChSa(42, false);
 
 	x.add(samara, null_city, minimum_way); 
-	x.add(chap, null_city, minimum_way);
-	x.add(novik, null_city, minimum_way);
-	x.add(hengrad, null_city, minimum_way);
-	x.add(kurumoch, null_city, minimum_way);
 	x.add(togliatti, null_city, minimum_way);
+	x.add(zhigulevsk, null_city, minimum_way);
+	x.add(syzran, null_city, minimum_way);
+	x.add(kurumoch, null_city, minimum_way);
+	x.add(moscow, null_city, minimum_way);
+	x.add(chapayevsk, null_city, minimum_way);
 
-	x.connect(chap, novik, chap_nov);
-	x.connect(chap, hengrad, chap_hen);
+	x.connect(chapayevsk, samara, ChSa);
+	x.connect(samara, togliatti, SaTo);
+	x.connect(togliatti, zhigulevsk, ToZh);
+	x.connect(togliatti, syzran, ToSy);
+	x.connect(togliatti, kurumoch, ToKu);
+	x.connect(kurumoch, samara, KuSa);
+	x.connect(togliatti, samara, SaTo);
+	x.connect(zhigulevsk, syzran, ZhSy);
+	x.connect(samara, moscow, SaMo);
+	x.connect(togliatti, moscow, ToMo);
+	x.connect(syzran, moscow, SyMo);
 
-	x.connect(novik, hengrad, nov_hen);
-	x.connect(novik, samara, nov_sam);
-
-	x.connect(hengrad, samara, hen_sam);
-	x.connect(hengrad, kurumoch, hen_kur);
-	
-	x.connect(samara, kurumoch, sam_kur);
-
-	x.connect(kurumoch, togliatti, kur_tog);
 	x.bfs(minimum_way);
-	std::list<City> russian_road_rage = x.dijkstra(chap, togliatti, minimum_way, maximum_way);
+	std::cout << "\n\n";
+	std::list<City> russian_road_rage = x.dijkstra(togliatti, samara, minimum_way, maximum_way);
+	for (auto it: russian_road_rage)
+		std::cout << it << " - > ";
+	std::cout << "\n\n";
+	russian_road_rage.clear();
+	russian_road_rage = x.dijkstra(togliatti, syzran, minimum_way, maximum_way);
 	for (auto it : russian_road_rage)
 		std::cout << it << " - > ";
+	std::cout << "\n\n";
+	russian_road_rage.clear();
+	russian_road_rage = x.dijkstra(samara, syzran, minimum_way, maximum_way);
+	for (auto it : russian_road_rage)
+		std::cout << it << " - > ";
+	std::cout << "\n\n";
+	russian_road_rage.clear();
+	russian_road_rage = x.dijkstra(chapayevsk, moscow, minimum_way, maximum_way);
+	for (auto it : russian_road_rage)
+		std::cout << it << " - > ";
+	std::cout << "\n\n";
 	return 0;
 }

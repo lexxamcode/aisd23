@@ -293,6 +293,7 @@ public:
 		}
 
 		TVertex temp = to;
+		std::cout << "Total length:\n" << additional_info[to].track << std::endl;
 		while (true)
 		{
 			path.push_front(temp);

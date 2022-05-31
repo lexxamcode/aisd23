@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(aisd2_3)
 
-add_executable(project ui/ui.cpp headers/Graph.h headers/Queue.h)
+add_executable(project ui/ui.cpp headers/Graph.h)
 
 if (MSVC)
 	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

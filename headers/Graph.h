@@ -15,7 +15,8 @@ private:
 	{
 		TVertex element;
 		short color = 0;
-		TEdge range = 0;
+		TEdge range = static_cast<TEdge>(0);
+		TVertex* parent = nullptr;
 		Edge* first;
 	};
 
@@ -97,6 +98,7 @@ private:
 			{
 				_table[i].color = 0;
 				_table[i].range = 0;
+				_table[i].parent = nullptr;
 			}
 	}
 public:
@@ -271,6 +273,17 @@ public:
 			}
 		}
 	}
+
+	void relax()
+	{
+
+	}
+
+	void dijkstra(const TVertex& from, const TVertex& to) const
+	{
+		reinit();
+		std::queue<TVertex> calculated;
+
+		return;
+	}
 };
-// << _table[contains(current) - 1].element << " -> " 
-// << current << " -> "

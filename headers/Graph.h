@@ -13,30 +13,22 @@ private:
 	//
 	struct Edge
 	{
-		// Структура ребра: пункт назначения, свойство ребра
+		// ????????? ?????: ????? ??????????, ???????? ?????
 		TVertex _destination;
 		TEdge _edge_property;
 	};
 	struct Vertex
 	{
-<<<<<<< HEAD
-		TVertex element;
-		short color = 0;
-		TEdge range = static_cast<TEdge>(0);
-		TVertex* parent = nullptr;
-		Edge* first;
-=======
-		// Структура вершины: характерное поле, список
-		// исходящих ребер
+		// ????????? ???????: ??????????? ????, ??????
+		// ????????? ?????
 		TVertex _id;
 		std::list<Edge> _edges;
->>>>>>> 36d8e48bc7099286b9db818178c5107a5359f43c
 	};
 
 	struct AdditionalVertexInfo
 	{
-		// Структура для хранения данных, необходимых для
-		// алгоритмов обхода: цвет, путь, предок
+		// ????????? ??? ???????? ??????, ??????????? ???
+		// ?????????? ??????: ????, ????, ??????
 		short color = 0;
 		TEdge track;
 		TVertex parent;
@@ -55,7 +47,7 @@ private:
 			
 		}
 	};
-
+	//TVertex null_vertex;
 	std::vector<Vertex> _vtable;
 	std::map<TVertex, AdditionalVertexInfo> additional_info;
 	// 
@@ -66,12 +58,12 @@ private:
 				return i;
 		return -1;
 	}
-	void bfs_reinit()
+	void bfs_reinit(const TEdge& minway)
 	{
 		for (auto it = additional_info.begin(); it != additional_info.end(); it++)
 		{
 			it->second.color = 0;
-			it->second.track = static_cast<TEdge>(0);
+			it->second.track = minway;
 		}
 	}
 	void dijkstra_reinit()
@@ -80,53 +72,32 @@ private:
 		{
 			it->second.color = 0;
 			it->second.track = std::numeric_limits<TEdge>::max();
-			it->second.parent = std::numeric_limits<TVertex>::max();
 		}
 	}
 	TVertex nearest_neighbour(const TVertex& of) const
 	{
-		int index = contains(of); //Индекс вершины, от которой ищем ближайешго соседа
+		int index = contains(of); //?????? ???????, ?? ??????? ???? ?????????? ??????
 		if (index == -1) throw - 1;
 
-		TEdge lowest_cost = std::numeric_limits<TEdge>::max(); // Наименьший путь изначально - бесконечность
-		TVertex lowest_cost_vertex = std::numeric_limits<TVertex>::max(); // Вершина с наименьшим путем тоже будет "бесконечностью"
+		TEdge lowest_cost = std::numeric_limits<TEdge>::max(); // ?????????? ???? ?????????? - ?????????????
+		TVertex lowest_cost_vertex = std::numeric_limits<TVertex>::max(); // ??????? ? ?????????? ????? ???? ????? "??????????????"
 
-		for (auto it = _vtable[index]._edges.begin(); it != _vtable[index]._edges.end(); it++) //Проходим по всем ребрам исходящих из взятой вершины
+		for (auto it = _vtable[index]._edges.begin(); it != _vtable[index]._edges.end(); it++) //???????? ?? ???? ?????? ????????? ?? ?????? ???????
 		{
-			TEdge cost = it->_edge_property; // Вес вершины
+			TEdge cost = it->_edge_property; // ??? ???????
 
-			if (cost < lowest_cost && additional_info.at(it->_destination).color == 0) //Если вес наименьший и вершина необработана
+			if (cost < lowest_cost && additional_info.at(it->_destination).color == 0) //???? ??? ?????????? ? ??????? ????????????
 			{
-				lowest_cost = cost; //Сохраняем наименьший вес и вершину с наименьшим весом
+				lowest_cost = cost; //????????? ?????????? ??? ? ??????? ? ?????????? ?????
 				lowest_cost_vertex = it->_destination; 
 			}
 		}
 
-		return lowest_cost_vertex; //Возвращаем id вершины, ближайшей к to
+		return lowest_cost_vertex; //?????????? id ???????, ????????? ? to
 	}
 
 	TVertex cheapest_edge(const TVertex& from, const TVertex& to) const
 	{
-<<<<<<< HEAD
-		Edge* temp = first;
-		while (temp)
-		{
-			if (temp->destination == to)
-				return true;
-			temp = temp->next;
-		}
-		return false;
-	}
-	void reinit()
-	{
-		if(_table)
-			for (size_t i = 0; i < _size; i++)
-			{
-				_table[i].color = 0;
-				_table[i].range = 0;
-				_table[i].parent = nullptr;
-			}
-=======
 		int index = contains(of);
 		if (index == -1) throw - 1;
 
@@ -138,26 +109,25 @@ private:
 					lowest_cost = _edge_property;
 
 		return lowest_cost_vertex;
->>>>>>> 36d8e48bc7099286b9db818178c5107a5359f43c
 	}
 
 public:
-	void add(const TVertex& id)
+	void add(const TVertex& id, const TVertex& null_vertex, const TEdge& minway)
 	{
-		// Добавляет вершину в граф
+		// ????????? ??????? ? ????
 
 		if (contains(id) > -1)
 			return;
 		Vertex adding = {id};
 		_vtable.push_back(adding);
 
-		AdditionalVertexInfo adding_info;
+		AdditionalVertexInfo adding_info = { 0, minway, null_vertex };
 		additional_info.insert({ id, adding_info });
 	}
 
 	bool has(const TVertex& id) const
 	{
-		// Проверяет, есть ли такая вершина в графе
+		// ?????????, ???? ?? ????? ??????? ? ?????
 
 		if (contains(id) == -1)
 			return false;
@@ -166,7 +136,7 @@ public:
 
 	void connect(const TVertex& from, const TVertex& to, const TEdge& edge_property)
 	{
-		// Создает ребро, связывающее from с to
+		// ??????? ?????, ??????????? from ? to
 
 		int from_index = contains(from);
 		if (from_index == -1)
@@ -178,7 +148,7 @@ public:
 
 	void disconnect(const TVertex& from, const TVertex& to, const TEdge& edge_property)
 	{
-		// Удаляет конкретную связь from с to
+		// ??????? ?????????? ????? from ? to
 
 		int from_index = contains(from);
 		if (from_index == -1)
@@ -199,7 +169,7 @@ public:
 	
 	void destroy_all_edges(const TVertex& from, const TVertex& to)
 	{
-		// Удаляет все связи from с to
+		// ??????? ??? ????? from ? to
 
 		int from_index = contains(from);
 		if (from_index == -1)
@@ -220,7 +190,7 @@ public:
 
 	void erase(const TVertex& id)
 	{
-		// Удаление вершины из графа
+		// ???????? ??????? ?? ?????
 
 		int index = contains(id);
 		if (index == -1)
@@ -244,19 +214,19 @@ public:
 		additional_info.erase(id);
 	}
 
-	void bfs()
+	void bfs(const TEdge& minway)
 	{
-		// Обход в ширину
+		// ????? ? ??????
 
 		for (int i = 0; i < _vtable.size(); i++)//for s in vertixies
 		{
-			bfs_reinit();
+			bfs_reinit(minway);
 			std::queue<TVertex> neighbours; //Q
 			neighbours.push(_vtable[i]._id); //Q.add(s)
 			additional_info.at(_vtable[i]._id).color = 0; // s' color = gray
-			additional_info.at(_vtable[i]._id).track = static_cast<TEdge>(0); //d_s = 0
+			additional_info.at(_vtable[i]._id).track = minway; //d_s = 0
 				
-			std::cout << "[  " << _vtable[i]._id << "  ]:" << std::endl;
+			std::cout << "\n[  " << _vtable[i]._id << "  ]:\n" << std::endl;
 
 			while (!neighbours.empty())
 			{
@@ -274,7 +244,7 @@ public:
 						additional_info[it->_destination].parent = current; //v.parent = current
 						neighbours.push(it->_destination); // Q.push(current)
 
-						std::cout << " " << additional_info[it->_destination].parent << "->" << it->_destination << " = " << additional_info[it->_destination].track << std::endl;
+						std::cout << " \n" << additional_info[it->_destination].parent << " --->\n" << it->_destination << ": " << additional_info[it->_destination].track << std::endl;
 					}
 				}
 				additional_info.at(current).color = 2; // current.color = black
@@ -282,20 +252,7 @@ public:
 		}
 	}
 
-<<<<<<< HEAD
-	void relax()
-	{
-
-	}
-
-	void dijkstra(const TVertex& from, const TVertex& to) const
-	{
-		reinit();
-		std::queue<TVertex> calculated;
-
-		return;
-=======
-	std::list<TVertex> dijkstra(const TVertex& from, const TVertex& to)
+	std::list<TVertex> dijkstra(const TVertex& from, const TVertex& to, const TEdge& minway)
 	{
 		std::list<TVertex> path;
 		int index = contains(from);
@@ -305,9 +262,9 @@ public:
 		std::list<TVertex> used; // S = 0
 		std::priority_queue<DijkstraQueueStruct, std::vector<DijkstraQueueStruct>, DQSCompare> vertex_q;// Q = V
 
-		// Путь до начальной вершины = 0
-		// Загружаем все пары {вершина, путь до нее} в очередь с приоритетом vertex_q
-		additional_info[from].track = static_cast<TEdge>(0);
+		// ???? ?? ????????? ??????? = 0
+		// ????????? ??? ???? {???????, ???? ?? ???} ? ??????? ? ??????????? vertex_q
+		additional_info[from].track = minway;
 
 		DijkstraQueueStruct start = { from, additional_info[from].track };
 		vertex_q.push(start);
@@ -322,12 +279,12 @@ public:
 			for (auto it = neighbours.begin(); it != neighbours.end(); it++)
 			{
 				
-				TEdge current_cost = additional_info[current].track; // Путь к соседу через текущий узел
+				TEdge current_cost = additional_info[current].track; // ???? ? ?????? ????? ??????? ????
 				TEdge new_cost = current_cost + it->_edge_property;
-				if (additional_info[it->_destination].track > new_cost) // Если к соседу можно добраться быстрее через текущий узел
+				if (additional_info[it->_destination].track > new_cost) // ???? ? ?????? ????? ????????? ??????? ????? ??????? ????
 				{
-					additional_info[it->_destination].track = new_cost; // Обновляем стоимость пути к этому соседу
-					additional_info[it->_destination].parent = current; // nearest становится родителем этого соседа
+					additional_info[it->_destination].track = new_cost; // ????????? ????????? ???? ? ????? ??????
+					additional_info[it->_destination].parent = current; // nearest ?????????? ????????? ????? ??????
 
 					DijkstraQueueStruct temp = { it->_destination, new_cost};
 					vertex_q.push(temp);
@@ -344,6 +301,5 @@ public:
 			temp = additional_info.at(temp).parent;
 		}
 		return path;
->>>>>>> 36d8e48bc7099286b9db818178c5107a5359f43c
 	}
 };

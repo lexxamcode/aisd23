@@ -7,7 +7,7 @@ private:
 	std::string _name;
 	unsigned _population;
 public:
-	City(): _name(nullptr), _population(0) { }
+	City(): _name(""), _population(0) { }
 	City(const std::string& name, unsigned population)
 	{
 		_name = name;
@@ -43,7 +43,7 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& out, const City& city) {
-	out << "Name = " << city.get_name() << ", Population = " << city.get_population();
+	out <<  city.get_name() << ", population = " << city.get_population();
 	return out;
 }
 

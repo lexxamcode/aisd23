@@ -48,6 +48,10 @@ public:
 		}
 		return this;
 	}
+	operator float()
+	{
+		return static_cast<float>(_population);
+	}
 	
 };
 

@@ -3,11 +3,11 @@
 class Road
 {
 private:
-	unsigned _length;
+	float _length;
 	bool _federal;
 public:
 	Road() : _length(0), _federal(false) { }
-	Road(unsigned length, bool federal): _length(length), _federal(federal) { }
+	Road(float length, bool federal): _length(length), _federal(federal) { }
 	Road(const Road& copy_road)
 	{
 			_length = copy_road._length;
@@ -17,15 +17,15 @@ public:
 	{
 		return _federal;
 	}
-	bool length() const
+	float length() const
 	{
 		return _length;
 	}
-	bool set_status(bool federal)
+	void set_status(bool federal)
 	{
 		_federal = federal;
 	}
-	bool change_length(unsigned length)
+	bool change_length(float length)
 	{
 		_length = length;
 	}
@@ -50,6 +50,10 @@ public:
 	{
 		this->_length = (this->_length + rhs._length);
 		return *this;
+	}
+	operator float() const
+	{
+		return static_cast<float>(_length);
 	}
 	friend bool operator ==(const Road& r1, const Road& r2);
 	friend Road operator +(const Road& r1, const Road& r2);
